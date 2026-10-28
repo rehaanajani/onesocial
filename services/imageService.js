@@ -15,6 +15,24 @@ const MOCK_IMAGES = {
   x: 'https://images.unsplash.com/photo-1611605698335-8b1569810432?w=1280&h=720&fit=crop&auto=format',
 };
 
+// Magic-byte prefixes of base64-encoded image files
+const BASE64_SIGNATURES = [
+  ['/9j/', 'image/jpeg'],
+  ['iVBOR', 'image/png'],
+  ['R0lGOD', 'image/gif'],
+  ['UklGR', 'image/webp'],
+];
+
+/**
+ * The frontend uploads bare base64 (no "data:" prefix). Turn it back into a
+ * data URL so the result card can render and download it.
+ */
+function toDataUrl(base64) {
+  if (base64.startsWith('data:')) return base64;
+  const match = BASE64_SIGNATURES.find(([prefix]) => base64.startsWith(prefix));
+  return `data:${match ? match[1] : 'image/png'};base64,${base64}`;
+}
+
 function isMockMode() {
   const provider = (process.env.AI_PROVIDER || '').toLowerCase();
   const hasKey = !!process.env.AWS_ACCESS_KEY_ID;
@@ -33,7 +51,7 @@ function isMockMode() {
  */
 async function generateImage(platform, content, imageAction = 'generate_new', primaryImage = null, engineeredPrompt = null) {
   // Pass through original image unchanged
-  if (imageAction === 'keep_original' && primaryImage) return primaryImage;
+  if (imageAction === 'keep_original' && primaryImage) return toDataUrl(primaryImage);
 
   if (isMockMode()) {
     console.log(`[imageService] MOCK — stub image for ${platform}`);
@@ -50,4 +68,4 @@ async function generateImage(platform, content, imageAction = 'generate_new', pr
   return bedrockProvider.generateImage(prompt, platform, needsReferenceImage ? primaryImage : null);
 }
 
-module.exports = { generateImage };
+module.exports = { generateImage, toDataUrl };
