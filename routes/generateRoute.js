@@ -79,7 +79,8 @@ router.post('/', async (req, res) => {
             });
         }
 
-        const normalisedPlatforms = platforms.map((p) => p.toLowerCase());
+        // De-duplicate so ["x", "X"] doesn't generate the same platform twice
+        const normalisedPlatforms = [...new Set(platforms.map((p) => p.toLowerCase()))];
 
         console.log(
             `[generate] platforms=${normalisedPlatforms.join(',')} | action=${imageAction} | vibe=${captionVibe} | niche=${contentNiche} | style=${imageStyle}`
