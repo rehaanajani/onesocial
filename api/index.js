@@ -103,10 +103,18 @@ app.use((_req, res) => {
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
+    // Body-parser errors are the client's fault: bad JSON or a body over the limit
+    if (err.type === "entity.parse.failed") {
+        return res.status(400).json({ error: "Bad Request", message: "Request body is not valid JSON." });
+    }
+    if (err.type === "entity.too.large") {
+        return res.status(413).json({ error: "Payload Too Large", message: "Request body exceeds the 10 MB limit." });
+    }
+
     console.error("[global-error-handler]", err.stack);
     res.status(500).json({
         error: "Internal Server Error",
-        message: err.message || "Unexpected server error",
+        message: "Unexpected server error",
     });
 });
 
