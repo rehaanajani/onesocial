@@ -84,7 +84,7 @@ app.use(express.json({ limit: "10mb" }));
 app.get("/api/health", (_req, res) => {
     res.status(200).json({
         status: "ok",
-        provider: process.env.AI_PROVIDER || "openrouter",
+        provider: process.env.AI_PROVIDER || "bedrock",
         rateLimit: `${RATE_LIMIT_MAX} req/min`,
         timestamp: new Date().toISOString(),
     });
@@ -124,9 +124,9 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log("\n🚀 OneSocial Backend running");
         console.log(`   Server      : http://localhost:${PORT}`);
-        console.log(`   Provider    : ${(process.env.AI_PROVIDER || "openrouter").toUpperCase()}`);
+        console.log(`   Provider    : ${(process.env.AI_PROVIDER || "bedrock").toUpperCase()}`);
         console.log(`   Rate limit  : ${RATE_LIMIT_MAX} req/min per IP`);
-        console.log(`   Health check: http://localhost:${PORT}/health`);
+        console.log(`   Health check: http://localhost:${PORT}/api/health`);
         console.log(`   Generate    : POST http://localhost:${PORT}/api/generate\n`);
     });
 }
