@@ -36,6 +36,22 @@ router.post('/', async (req, res) => {
         } = req.body;
 
         // ── 1. Validate ──────────────────────────────────────────────────────
+        const stringFields = { content, captionVibe, accountType, manualCaption, imageAction, imageStyle, colorPalette, contentNiche };
+        const badField = Object.keys(stringFields).find((k) => typeof stringFields[k] !== 'string');
+        if (badField) {
+            return res.status(400).json({
+                error: 'Validation Error',
+                message: `"${badField}" must be a string.`,
+            });
+        }
+
+        if (primaryImage !== null && typeof primaryImage !== 'string') {
+            return res.status(400).json({
+                error: 'Validation Error',
+                message: '"primaryImage" must be a base64 string or null.',
+            });
+        }
+
         const hasContent = content.trim().length > 0;
         const hasManualCaption = manualCaption.trim().length > 0;
 
@@ -54,7 +70,7 @@ router.post('/', async (req, res) => {
         }
 
         const invalidPlatforms = platforms.filter(
-            (p) => !SUPPORTED_PLATFORMS.includes(p.toLowerCase())
+            (p) => typeof p !== 'string' || !SUPPORTED_PLATFORMS.includes(p.toLowerCase())
         );
         if (invalidPlatforms.length > 0) {
             return res.status(400).json({
