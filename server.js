@@ -1,10 +1,22 @@
 /**
  * server.js
- * 
- * Local Development Proxy Entry Point
- * 
- * We moved the actual Express app into `api/index.js` for native 
- * Vercel Serverless proxying. This file simply loads that app 
- * so that `npm run dev` continues to work exactly as before locally.
+ *
+ * Local Development Entry Point
+ *
+ * The Express app lives in `api/index.js` so Vercel can serve it as a
+ * serverless function. This file starts it on a port for `npm run dev`.
+ * Keeping listen() here means tests can import the app without binding a port.
  */
-require('./api/index.js');
+const app = require('./api/index.js');
+
+const PORT = process.env.PORT || 5000;
+const RATE_LIMIT_MAX = app.locals.rateLimitMax;
+
+app.listen(PORT, () => {
+    console.log("\n🚀 OneSocial Backend running");
+    console.log(`   Server      : http://localhost:${PORT}`);
+    console.log(`   Provider    : ${(process.env.AI_PROVIDER || "bedrock").toUpperCase()}`);
+    console.log(`   Rate limit  : ${RATE_LIMIT_MAX} req/min per IP`);
+    console.log(`   Health check: http://localhost:${PORT}/api/health`);
+    console.log(`   Generate    : POST http://localhost:${PORT}/api/generate\n`);
+});

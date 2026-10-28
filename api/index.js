@@ -1,7 +1,7 @@
 /**
- * server.js
+ * api/index.js
  *
- * OneSocial Backend – Express Server Entry Point
+ * OneSocial Backend – Express app (served by Vercel, started locally by server.js)
  */
 
 require("dotenv").config();
@@ -17,7 +17,6 @@ const app = express();
 // proxy's address and every visitor shares a single rate-limit bucket.
 app.set("trust proxy", 1);
 
-const PORT = process.env.PORT || 5000;
 
 // ── Simple In-Memory Rate Limiter ─────────────────────────────────────────
 // Limits each IP to RATE_LIMIT_MAX requests per RATE_LIMIT_WINDOW_MS.
@@ -118,18 +117,6 @@ app.use((err, _req, res, _next) => {
     });
 });
 
-// ── Start Server (Local only) ───────────────────────────────────────────────
-
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-    app.listen(PORT, () => {
-        console.log("\n🚀 OneSocial Backend running");
-        console.log(`   Server      : http://localhost:${PORT}`);
-        console.log(`   Provider    : ${(process.env.AI_PROVIDER || "bedrock").toUpperCase()}`);
-        console.log(`   Rate limit  : ${RATE_LIMIT_MAX} req/min per IP`);
-        console.log(`   Health check: http://localhost:${PORT}/api/health`);
-        console.log(`   Generate    : POST http://localhost:${PORT}/api/generate\n`);
-    });
-}
-
 // Export for Vercel Serverless
+app.locals.rateLimitMax = RATE_LIMIT_MAX;
 module.exports = app;
