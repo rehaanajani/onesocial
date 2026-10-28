@@ -12,6 +12,11 @@ const cors = require("cors");
 const generateRoute = require("../routes/generateRoute");
 
 const app = express();
+
+// Vercel (and most hosts) sit behind one proxy hop; without this req.ip is the
+// proxy's address and every visitor shares a single rate-limit bucket.
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 5000;
 
 // ── Simple In-Memory Rate Limiter ─────────────────────────────────────────
@@ -22,8 +27,16 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000;  // 1 minute
 const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || "10", 10);
 const rateLimitMap = new Map();
 
+// Drop expired windows so the map doesn't grow forever on a long-lived server
+setInterval(() => {
+    const cutoff = Date.now() - RATE_LIMIT_WINDOW_MS;
+    for (const [ip, entry] of rateLimitMap) {
+        if (entry.windowStart < cutoff) rateLimitMap.delete(ip);
+    }
+}, RATE_LIMIT_WINDOW_MS).unref();
+
 function rateLimiter(req, res, next) {
-    const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+    const ip = req.ip || "unknown";
     const now = Date.now();
 
     let entry = rateLimitMap.get(ip);
