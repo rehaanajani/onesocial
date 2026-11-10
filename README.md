@@ -66,3 +66,7 @@ Returns `{ "<platform>": { "caption": "...", "image": "<url or data URL>" } }`.
 ## Deploying
 
 `vercel.json` serves the Vite build as static files and routes `/api/*` to `api/index.js` as a serverless function.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
